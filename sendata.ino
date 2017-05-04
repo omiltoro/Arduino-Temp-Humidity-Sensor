@@ -1,9 +1,16 @@
+#include <dht.h>
+dht DHT;
+#define DHT11_PIN 12
+#include <Event.h>
+#include <Timer.h>
+
+
 #include "SIM900.h"
 #include <SoftwareSerial.h>
 #include "inetGSM.h"
 //#include "sms.h"
 //#include "call.h"
-
+Timer ti;
 //To change pins for Software Serial, use the two lines in GSM.cpp.
 
 //GSM Shield for Arduino
@@ -20,8 +27,7 @@ char msg[50];
 int numdata;
 char inSerial[50];
 int i=0;
-int h=30;
-int t=15;
+
 boolean started=false;
 static char postUrl[150];
 char *api_key="ee13504e4b14163cb32331dfd013f3af";
@@ -54,25 +60,44 @@ void setup()
 
           //TCP Client GET, send a GET request to the server and
           //save the reply.
-         
-          sprintf(postUrl, "/api/data/push?id=4rps21""&t=+t&h=+h""api_key=ee13504e4b14163cb32331dfd013f3af");
-          numdata=inet.httpGET("41.215.34.154", 80,postUrl, msg, 50);
-          //Print the results.
-          Serial.println("\nNumber of data received:");
-          Serial.println(numdata);
-          Serial.println("\nData received:");
-          Serial.println(msg);
+          
+          
      }
 };
 
 void loop()
 {
-     //Read for new byte on serial hardware,
+  
+    //Read for new byte on serial hardware,
      //and write them on NewSoftSerial.
      serialhwread();
+    
      //Read for new byte on NewSoftSerial.
      serialswread();
+
+ int chk = DHT.read11(DHT11_PIN);
+
+                  float h = DHT.humidity;
+                  float t = DHT.temperature;
+                  char tempStr[15];
+                  char humidStr[15];
+                  dtostrf(t, 4, 2, tempStr);
+                  dtostrf(h, 4, 2, humidStr);
+          sprintf(postUrl, "/api/data/push?id=4rps21&t=%s&h=%s&api_key=%s",tempStr,humidStr,api_key);
+          numdata=inet.httpGET("41.215.34.154", 80,postUrl, msg, 50);
+delay(2000);
+
+ 
+          //Print the results.
+          Serial.println("\nNumber of data received:");
+          Serial.println(numdata);
+          delay(5000);
+          Serial.println("\nData received:");
+          Serial.println(msg);
+          delay(15000);
+          
 };
+
 
 void serialhwread()
 {
